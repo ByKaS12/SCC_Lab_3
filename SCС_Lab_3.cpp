@@ -1,6 +1,7 @@
 ﻿#include <iostream> 
 #include <mpi.h> 
 #include <fstream> 
+#include <chrono>
 #include <iomanip> 
 /*
 * Лабораторная работа #3
@@ -186,6 +187,7 @@ void slave() {
 }
 // старт работы программы
 int main(int argc, char** argv) {
+	auto start = std::chrono::high_resolution_clock::now();
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &processRank);
 	MPI_Comm_size(MPI_COMM_WORLD, &processCount);
@@ -193,5 +195,8 @@ int main(int argc, char** argv) {
 	// в зависимости какой номер процесса (основной процесс или вспомогательный) вызывается соотвествующая номеру процесса функция
 	processRank == 0 ? master() : slave();
 	MPI_Finalize();
+	auto finish = std::chrono::high_resolution_clock::now();
+	auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish - start);
+	std::cout << "\n" << microseconds.count() << "us\n";
 	return 0;
 }
