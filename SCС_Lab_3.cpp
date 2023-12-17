@@ -12,7 +12,9 @@
 using namespace std;
 
 MPI_Comm graph;
+//объявление переменных
 int processRank, processCount;
+// объявление ссылок и динамических массивов (матриц) для реализации задачи 
 double** aMatrix, ** bMatrix, ** cMatrix, * row, * column, * tmpColumn, * result;
 
 int nextProcess() {
@@ -51,6 +53,7 @@ void createGraph() {
 	MPI_Graph_create(MPI_COMM_WORLD, n, index, edges, 0, &graph);
 	MPI_Comm_size(graph, &processCount);
 	MPI_Comm_rank(graph, &processRank);
+	//очищения памяти для массивов , необходимых для создания графа
 	delete[] index;
 	delete[] edges;
 }
@@ -151,7 +154,7 @@ void master() {
 	cout << endl;
 	cout << "===============" << endl;
 	print(cMatrix);
-
+	// очищение памяти в основном процессе
 	delete aMatrix;
 	delete bMatrix;
 	delete cMatrix;
@@ -173,6 +176,7 @@ void slave() {
 	initRowAndColumn(rowsBuf, columnsBuf, row, column);
 	mult(row, column, result, tmpColumn);
 	collect();
+	// очищение памяти в вспомоготельном процессе
 	delete[] result;
 	delete[] row;
 	delete[] column;
@@ -180,12 +184,13 @@ void slave() {
 	delete[] rowsBuf;
 	delete[] columnsBuf;
 }
-
+// старт работы программы
 int main(int argc, char** argv) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &processRank);
 	MPI_Comm_size(MPI_COMM_WORLD, &processCount);
 	createGraph();
+	// в зависимости какой номер процесса (основной процесс или вспомогательный) вызывается соотвествующая номеру процесса функция
 	processRank == 0 ? master() : slave();
 	MPI_Finalize();
 	return 0;
